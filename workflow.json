@@ -1,0 +1,306 @@
+{
+  "name": "Generador de Flashcards y Resúmenes de Estudio",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1cTreqUJO6KiEbqv8wLjxvl8uwLPNzYqY",
+          "mode": "list",
+          "cachedResultName": "Apuntes Brutos",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1cTreqUJO6KiEbqv8wLjxvl8uwLPNzYqY"
+        },
+        "event": "fileUpdated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -176,
+        0
+      ],
+      "id": "09843597-e61d-4075-98b1-cec8d8503a94",
+      "name": "Google Drive Trigger",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "iRcb67SDTanoHn7Q",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        192,
+        0
+      ],
+      "id": "7598c52e-8b7d-4375-8761-f4960bb76524",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-flash-latest",
+          "mode": "list",
+          "cachedResultName": "models/gemini-flash-latest"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Actúa como un profesor de Ingeniería Informática. Lee el siguiente texto extraído de los apuntes:\n{{ $json.text }}\n\nInstrucciones:\n1. Redacta un resumen de los conceptos clave en un párrafo.\n2. Genera exactamente 15 flashcards con preguntas y respuestas cortas, directas y técnicas.\n3. Devuelve la respuesta ESTRICTAMENTE en este formato JSON, sin texto adicional ni bloques Markdown:\n\n{\n  \"resumen\": \"Aquí tu resumen detallado...\",\n  \"flashcards\": [\n    {\n      \"pregunta\": \"¿Pregunta 1?\",\n      \"respuesta\": \"Respuesta 1\"\n    },\n    {\n      \"pregunta\": \"¿Pregunta 2?\",\n      \"respuesta\": \"Respuesta 2\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        368,
+        0
+      ],
+      "id": "bdba280c-9d44-4234-809d-d268f836d79a",
+      "name": "Message a model",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "maxTries": 4,
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Fld8RNBunuXriOz5",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b1a5c260-e694-4eca-a25e-e0db805360d2",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "iRcb67SDTanoHn7Q",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Capturamos el texto bruto\nlet rawText = $input.first().json?.content?.parts?.[0]?.text || $input.first().json?.text;\nrawText = rawText.replace(/```json/g, \"\").replace(/```/g, \"\").trim();\n\n// 2. Convertimos a Objeto JSON\nconst respuestaIA = JSON.parse(rawText);\nconst resumen = respuestaIA.resumen;\n\n// 3. Construimos el CSV para Anki\nlet csvText = \"Pregunta|Respuesta\\n\";\nrespuestaIA.flashcards.forEach(card => {\n    csvText += `${card.pregunta}|${card.respuesta}\\n`;\n});\n\n// 4. Nombres de los archivos\nconst baseName = \"Apuntes_\" + new Date().toISOString().split('T')[0];\nconst csvFileName = baseName + \"_Flashcards.csv\";\nconst htmlFileName = baseName + \"_Resumen.html\";\n\n// 5. HTML elegante para el resumen\nconst htmlContent = `\n<!DOCTYPE html>\n<html lang=\"es\">\n<head>\n    <meta charset=\"UTF-8\">\n    <title>Resumen de Estudio</title>\n    <style>\n        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f4f7f6; color: #333; line-height: 1.6; padding: 40px; }\n        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 40px 50px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); border-top: 6px solid #1a73e8; }\n        h1 { color: #1a73e8; font-size: 26px; border-bottom: 2px solid #f0f0f0; padding-bottom: 12px; margin-top: 0;}\n        p { font-size: 16px; text-align: justify; }\n        .footer { margin-top: 40px; font-size: 13px; color: #aaa; text-align: center; font-style: italic; }\n    </style>\n</head>\n<body>\n    <div class=\"container\">\n        <h1>📚 Resumen del Tema</h1>\n        <p>${resumen}</p>\n        <div class=\"footer\">Generado automáticamente con n8n y Google Gemini 🤖</div>\n    </div>\n</body>\n</html>\n`;\n\n// 6. Creamos los binarios limpios\nconst csvBinaryRaw = await this.helpers.prepareBinaryData(Buffer.from(csvText), csvFileName, 'text/csv');\nconst htmlBinaryRaw = await this.helpers.prepareBinaryData(Buffer.from(htmlContent), htmlFileName, 'text/html');\n\n// 7. Devolvemos la salida (añadiendo el texto HTML)\nreturn [{\n    json: {\n        resumen: resumen,\n        htmlPuro: htmlContent // Añadimos el HTML en texto aquí\n    },\n    binary: {\n        data: csvBinaryRaw,          \n        resumenHtml: htmlBinaryRaw   \n    }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        688,
+        0
+      ],
+      "id": "efd1902c-5256-45e1-bf3d-a79d53907742",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "name": "={{ $('Google Drive Trigger').item.json.name }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1JQb_xIwgYQghZeXZ58p4OQA9OOyOubMQ",
+          "mode": "list",
+          "cachedResultName": "Apuntes limpios",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1JQb_xIwgYQghZeXZ58p4OQA9OOyOubMQ"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1072,
+        80
+      ],
+      "id": "07a623b8-a715-4941-83d5-103c46ad8783",
+      "name": "Upload_resume",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "iRcb67SDTanoHn7Q",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "={{ $binary.data.fileName }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1JQb_xIwgYQghZeXZ58p4OQA9OOyOubMQ",
+          "mode": "list",
+          "cachedResultName": "Apuntes limpios",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1JQb_xIwgYQghZeXZ58p4OQA9OOyOubMQ"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        896,
+        -96
+      ],
+      "id": "227dae6e-d33e-4d9c-8a85-58b70c82ff84",
+      "name": "Upload_flashCards",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "iRcb67SDTanoHn7Q",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "html_content": "={{ $json.htmlPuro }}",
+        "output_format": "file",
+        "output_filename": "={{ $('Google Drive Trigger').item.json.originalFilename }}"
+      },
+      "type": "n8n-nodes-htmlcsstopdf.htmlcsstopdf",
+      "typeVersion": 1,
+      "position": [
+        896,
+        80
+      ],
+      "id": "1c5c6694-1d54-41c8-bc11-9e85a2512cc6",
+      "name": "Convert HTML to PDF",
+      "credentials": {
+        "htmlcsstopdfApi": {
+          "id": "01hPtVJX2u3BGIgH",
+          "name": "HTML to PDF account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Drive Trigger": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Upload_flashCards",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Convert HTML to PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload_flashCards": {
+      "main": [
+        []
+      ]
+    },
+    "Convert HTML to PDF": {
+      "main": [
+        [
+          {
+            "node": "Upload_resume",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "b76862a4-b73b-406b-afc6-744d9546c5a7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "13f6ee0fc11e2e95a679c87e70bc44d9b90dff90370f31cc0eae7c845c13e8b1"
+  },
+  "id": "TtD6MUst0AEKGXvi",
+  "tags": []
+}
