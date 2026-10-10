@@ -11,7 +11,7 @@ Un orquestador de datos documental que transforma automáticamente apuntes unive
 
 Optimizar drásticamente el tiempo de preparación de material de estudio y gestión del conocimiento. Mediante la automatización del flujo de trabajo, cualquier documento subido a la nube es procesado instantáneamente, extrayendo la "señal del ruido" y generando dos entregables listos para consumir: un resumen ejecutivo en formato PDF y un dataset en CSV con pares de preguntas/respuestas.
 
-## 🧠 Arquitectura del Flujo
+## 📂 Arquitectura del Flujo
 
 El pipeline de datos está construido en **n8n** y opera de forma asíncrona basada en eventos (Event-Driven Architecture):
 
