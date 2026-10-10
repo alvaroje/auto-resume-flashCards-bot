@@ -1,0 +1,16 @@
+Pregunta|Respuesta
+¿Cuál es la diferencia fundamental en la salida de un compilador frente a la de un intérprete?|El compilador genera un artefacto ejecutable autónomo tras procesar todo el código, mientras que el intérprete no genera ejecutable y evalúa las instrucciones secuencialmente en memoria.
+¿Qué mecanismo híbrido emplean lenguajes como Java y Python para su ejecución?|Compilan primero el código fuente a un formato intermedio denominado bytecode, el cual es posteriormente interpretado por una máquina virtual.
+¿Qué operaciones realiza un precompilador o preprocesador sobre el código fuente?|Elimina comentarios, expande macros y reemplaza constantes simbólicas por sus valores literales antes de la compilación.
+¿Qué fases componen el Front-end de un compilador?|Análisis léxico, análisis sintáctico, análisis semántico y generación de código intermedio.
+¿De qué se encarga el Back-end o fase de síntesis de un compilador?|De la optimización de código y la generación del código objeto final dependiente de la arquitectura de la máquina destino.
+¿Qué salida produce el analizador léxico y cuál es su estructura general?|Produce componentes léxicos o tokens, típicamente estructurados como la tupla (nombre-token, valor-atributo).
+¿Qué tipo de gramáticas formales y estructura de datos utiliza habitualmente el analizador sintáctico?|Utiliza gramáticas libres de contexto (tipo 2 de Chomsky) y genera una representación en forma de árbol sintáctico.
+¿Cuáles son las comprobaciones principales que realiza el analizador semántico?|Comprobación de tipos de datos, verificación del flujo de control, unicidad de identificadores y emparejamiento de ámbitos.
+¿En qué consiste una instrucción de código intermedio de tres direcciones?|En una estructura cuádrupla que contiene un operador, dos operandos fuente y la dirección donde se almacena el resultado.
+¿Cuál es el propósito de la tabla de símbolos en el compilador?|Almacenar y consultar información declarada por el programador (identificadores, tipos, ámbitos y desplazamientos de memoria) a lo largo de las distintas fases.
+¿Qué función cumple el enlazador o montador en el proceso de desarrollo de software?|Incorpora al código objeto resultante las funciones y librerías externas necesarias para obtener un fichero ejecutable completamente autónomo.
+¿Quién diseñó en 1952 el sistema A-0, considerado el primer compilador de la historia?|Grace Hopper.
+¿Qué aportación relevante introdujo Niklaus Wirth con el lenguaje Pascal en la estructura de compiladores?|El uso de una representación intermedia llamada P-Code y la separación formal del proceso en Front-end y Back-end.
+¿Qué es un transpilador?|Un traductor de fuente a fuente que convierte código de una versión o lenguaje a otro de similar nivel de abstracción (por ejemplo, Babel o TypeScript a JavaScript).
+¿Qué beneficio aporta el uso de una representación intermedia independiente de la máquina?|Aumenta la portabilidad, permitiendo reutilizar el mismo Front-end para múltiples arquitecturas simplemente sustituyendo el Back-end generador de código.
